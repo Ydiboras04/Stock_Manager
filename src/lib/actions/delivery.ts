@@ -6,18 +6,22 @@ import { isDeliveryConform, type ReceivedLine } from "@/lib/business/conformity"
 import { createNotification } from "@/lib/notifications";
 
 export async function listSentPurchaseOrders() {
-  return prisma.purchaseOrder.findMany({
-    where: { status: "SENT" },
-    include: { supplier: true, lines: { include: { product: true } } },
-    orderBy: { createdAt: "asc" },
-  });
+  try {
+    return await prisma.purchaseOrder.findMany({
+      where: { status: "SENT" },
+      include: { supplier: true, lines: { include: { product: true } } },
+      orderBy: { createdAt: "asc" },
+    });
+  } catch {
+    return [];
+  }
 }
 
 export async function receiveDelivery(purchaseOrderId: string, receivedQuantities: Record<string, number>) {
   try {
     const order = await prisma.purchaseOrder.findUnique({
       where: { id: purchaseOrderId },
-      include: { lines: true },
+      include: { lines: { include: { product: true } } },
     });
     if (!order) return { success: false as const, error: "Commande introuvable" };
 
@@ -31,7 +35,7 @@ export async function receiveDelivery(purchaseOrderId: string, receivedQuantitie
 
     if (!conform) {
       const report = order.lines
-        .map((line) => `${line.productId}: attendu ${line.quantity}, reçu ${receivedQuantities[line.id] ?? 0}`)
+        .map((line) => `${line.product.name}: attendu ${line.quantity}, reçu ${receivedQuantities[line.id] ?? 0}`)
         .join("; ");
 
       await prisma.purchaseOrder.update({
