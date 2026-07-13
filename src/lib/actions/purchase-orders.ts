@@ -37,12 +37,15 @@ export async function checkAndTriggerReorder(tx: TransactionClient, productId: s
     },
   });
 
-  await createNotification({
-    role: "RESPONSABLE_ACHATS",
-    type: "PURCHASE_ORDER_TO_VALIDATE",
-    message: `Commande fournisseur à valider pour ${product.name} (quantité: ${reorderQuantity})`,
-    relatedEntityId: purchaseOrder.id,
-  });
+  await createNotification(
+    {
+      role: "RESPONSABLE_ACHATS",
+      type: "PURCHASE_ORDER_TO_VALIDATE",
+      message: `Commande fournisseur à valider pour ${product.name} (quantité: ${reorderQuantity})`,
+      relatedEntityId: purchaseOrder.id,
+    },
+    tx
+  );
 }
 
 export async function listPendingPurchaseOrders() {

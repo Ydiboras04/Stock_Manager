@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import type { NotificationType, Role } from "@prisma/client";
+import type { NotificationType, Role, Prisma } from "@prisma/client";
 
 export interface CreateNotificationInput {
   userId?: string;
@@ -9,8 +9,13 @@ export interface CreateNotificationInput {
   relatedEntityId?: string;
 }
 
-export async function createNotification(input: CreateNotificationInput) {
-  await prisma.notification.create({
+type PrismaClientOrTx = typeof prisma | Prisma.TransactionClient;
+
+export async function createNotification(
+  input: CreateNotificationInput,
+  client: PrismaClientOrTx = prisma
+) {
+  await client.notification.create({
     data: {
       userId: input.userId,
       role: input.role,
