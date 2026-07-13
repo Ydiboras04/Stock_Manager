@@ -16,7 +16,11 @@ export async function createSupplier(formData: FormData) {
     return { success: false as const, error: "Nom et email sont requis" };
   }
 
-  await prisma.supplier.create({ data: { name, email, phone } });
-  revalidatePath("/catalogue/fournisseurs");
-  return { success: true as const };
+  try {
+    await prisma.supplier.create({ data: { name, email, phone } });
+    revalidatePath("/catalogue/fournisseurs");
+    return { success: true as const };
+  } catch {
+    return { success: false as const, error: "Erreur lors de la création du fournisseur" };
+  }
 }
