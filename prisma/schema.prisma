@@ -1,0 +1,153 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  GESTIONNAIRE_STOCK
+  RESPONSABLE_ACHATS
+}
+
+enum PurchaseOrderStatus {
+  PENDING_VALIDATION
+  VALIDATED
+  SENT
+  DELIVERED
+  REJECTED
+}
+
+enum CustomerOrderStatus {
+  PENDING
+  STOCK_INSUFFICIENT
+  RESERVED
+  SHIPPED
+}
+
+enum StockMovementType {
+  IN
+  OUT
+}
+
+enum StockMovementReason {
+  DELIVERY
+  CUSTOMER_ORDER
+  ADJUSTMENT
+}
+
+enum NotificationType {
+  NON_CONFORMITY
+  ACCOUNTING_VALIDATION
+  STOCK_INSUFFICIENT
+  PURCHASE_ORDER_TO_VALIDATE
+  PURCHASE_ORDER_SENT
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role
+  createdAt    DateTime @default(now())
+
+  validatedPurchaseOrders PurchaseOrder[] @relation("ValidatedBy")
+  notifications           Notification[]
+}
+
+model Supplier {
+  id             String          @id @default(cuid())
+  name           String
+  email          String
+  phone          String
+  products       Product[]
+  purchaseOrders PurchaseOrder[]
+}
+
+model Product {
+  id         String   @id @default(cuid())
+  sku        String   @unique
+  name       String
+  quantity   Int      @default(0)
+  qMin       Int
+  supplierId String
+  supplier   Supplier @relation(fields: [supplierId], references: [id])
+
+  purchaseOrderLines PurchaseOrderLine[]
+  customerOrderLines CustomerOrderLine[]
+  stockMovements     StockMovement[]
+}
+
+model Client {
+  id             String          @id @default(cuid())
+  name           String
+  email          String
+  customerOrders CustomerOrder[]
+}
+
+model PurchaseOrder {
+  id                  String              @id @default(cuid())
+  supplierId          String
+  supplier            Supplier            @relation(fields: [supplierId], references: [id])
+  status              PurchaseOrderStatus @default(PENDING_VALIDATION)
+  createdAt           DateTime            @default(now())
+  validatedById       String?
+  validatedBy         User?               @relation("ValidatedBy", fields: [validatedById], references: [id])
+  nonConformityReport String?
+
+  lines PurchaseOrderLine[]
+}
+
+model PurchaseOrderLine {
+  id              String        @id @default(cuid())
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+  productId       String
+  product         Product       @relation(fields: [productId], references: [id])
+  quantity        Int
+}
+
+model CustomerOrder {
+  id        String              @id @default(cuid())
+  clientId  String
+  client    Client              @relation(fields: [clientId], references: [id])
+  status    CustomerOrderStatus @default(PENDING)
+  createdAt DateTime            @default(now())
+
+  lines CustomerOrderLine[]
+}
+
+model CustomerOrderLine {
+  id              String        @id @default(cuid())
+  customerOrderId String
+  customerOrder   CustomerOrder @relation(fields: [customerOrderId], references: [id])
+  productId       String
+  product         Product       @relation(fields: [productId], references: [id])
+  quantity        Int
+}
+
+model Notification {
+  id              String           @id @default(cuid())
+  userId          String?
+  user            User?            @relation(fields: [userId], references: [id])
+  role            Role?
+  type            NotificationType
+  message         String
+  isRead          Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+  relatedEntityId String?
+}
+
+model StockMovement {
+  id             String              @id @default(cuid())
+  productId      String
+  product        Product             @relation(fields: [productId], references: [id])
+  quantity       Int
+  type           StockMovementType
+  reason         StockMovementReason
+  createdAt      DateTime            @default(now())
+  relatedOrderId String?
+}
