@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { isBelowThreshold, computeReorderQuantity } from "@/lib/business/reorder";
 import { createNotification } from "@/lib/notifications";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import type { Prisma } from "@prisma/client";
 
 type TransactionClient = Prisma.TransactionClient;
@@ -63,11 +65,15 @@ export async function listPurchaseOrders() {
   });
 }
 
-export async function validatePurchaseOrder(id: string, validatedById: string) {
+export async function validatePurchaseOrder(id: string) {
+  const session = await getServerSession(authOptions);
+  if (!session || session.user.role !== "RESPONSABLE_ACHATS") {
+    return { success: false as const, error: "Non autorisé" };
+  }
   try {
     await prisma.purchaseOrder.update({
       where: { id },
-      data: { status: "VALIDATED", validatedById },
+      data: { status: "VALIDATED", validatedById: session.user.id },
     });
     revalidatePath("/commandes-fournisseurs");
     return { success: true as const };
@@ -79,11 +85,15 @@ export async function validatePurchaseOrder(id: string, validatedById: string) {
   }
 }
 
-export async function rejectPurchaseOrder(id: string, validatedById: string) {
+export async function rejectPurchaseOrder(id: string) {
+  const session = await getServerSession(authOptions);
+  if (!session || session.user.role !== "RESPONSABLE_ACHATS") {
+    return { success: false as const, error: "Non autorisé" };
+  }
   try {
     await prisma.purchaseOrder.update({
       where: { id },
-      data: { status: "REJECTED", validatedById },
+      data: { status: "REJECTED", validatedById: session.user.id },
     });
     revalidatePath("/commandes-fournisseurs");
     return { success: true as const };
@@ -96,6 +106,10 @@ export async function rejectPurchaseOrder(id: string, validatedById: string) {
 }
 
 export async function emitPurchaseOrder(id: string) {
+  const session = await getServerSession(authOptions);
+  if (!session || session.user.role !== "RESPONSABLE_ACHATS") {
+    return { success: false as const, error: "Non autorisé" };
+  }
   try {
     const order = await prisma.purchaseOrder.update({
       where: { id },

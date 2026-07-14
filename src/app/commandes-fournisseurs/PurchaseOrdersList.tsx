@@ -26,7 +26,7 @@ const STATUS_LABEL: Record<string, string> = {
   REJECTED: "Rejetée",
 };
 
-export function PurchaseOrdersList({ orders, currentUserId }: { orders: Order[]; currentUserId: string }) {
+export function PurchaseOrdersList({ orders }: { orders: Order[] }) {
   const [localOrders, setLocalOrders] = useState(orders);
 
   function updateStatus(id: string, status: string) {
@@ -34,7 +34,7 @@ export function PurchaseOrdersList({ orders, currentUserId }: { orders: Order[];
   }
 
   async function handleValidate(id: string) {
-    const result = await validatePurchaseOrder(id, currentUserId);
+    const result = await validatePurchaseOrder(id);
     if (result.success) {
       toast.success("Commande validée");
       updateStatus(id, "VALIDATED");
@@ -42,7 +42,7 @@ export function PurchaseOrdersList({ orders, currentUserId }: { orders: Order[];
   }
 
   async function handleReject(id: string) {
-    const result = await rejectPurchaseOrder(id, currentUserId);
+    const result = await rejectPurchaseOrder(id);
     if (result.success) {
       toast.success("Commande rejetée");
       updateStatus(id, "REJECTED");

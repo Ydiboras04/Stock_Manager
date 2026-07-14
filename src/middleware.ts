@@ -15,6 +15,9 @@ export default withAuth(
     if (path.startsWith("/reception-livraison") && role !== "GESTIONNAIRE_STOCK") {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
+    if (path.startsWith("/commandes-fournisseurs") && role !== "RESPONSABLE_ACHATS") {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
     return NextResponse.next();
   },
   { callbacks: { authorized: ({ token }) => !!token } }
