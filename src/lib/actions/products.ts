@@ -3,6 +3,8 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export async function listProducts() {
   return prisma.product.findMany({
@@ -12,6 +14,11 @@ export async function listProducts() {
 }
 
 export async function createProduct(formData: FormData) {
+  const session = await getServerSession(authOptions);
+  if (!session || session.user.role !== "GESTIONNAIRE_STOCK") {
+    return { success: false as const, error: "Non autorisé" };
+  }
+
   const sku = String(formData.get("sku") ?? "").trim();
   const name = String(formData.get("name") ?? "").trim();
   const quantity = Number(formData.get("quantity") ?? 0);
@@ -40,6 +47,11 @@ export async function createProduct(formData: FormData) {
 }
 
 export async function updateProduct(id: string, formData: FormData) {
+  const session = await getServerSession(authOptions);
+  if (!session || session.user.role !== "GESTIONNAIRE_STOCK") {
+    return { success: false as const, error: "Non autorisé" };
+  }
+
   const name = String(formData.get("name") ?? "").trim();
   const qMin = Number(formData.get("qMin") ?? 0);
 

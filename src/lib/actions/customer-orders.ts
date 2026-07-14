@@ -11,6 +11,33 @@ export interface OrderLineInput {
   quantity: number;
 }
 
+class StockRaceError extends Error {
+  constructor(readonly productId: string) {
+    super(`Stock insuffisant détecté pour le produit ${productId} lors du décrément`);
+  }
+}
+
+async function markOrderInsufficientAndNotify(orderId: string, insufficientIds: string[]) {
+  await prisma.customerOrder.update({ where: { id: orderId }, data: { status: "STOCK_INSUFFICIENT" } });
+
+  await createNotification({
+    role: "GESTIONNAIRE_STOCK",
+    type: "STOCK_INSUFFICIENT",
+    message: `Stock insuffisant pour la commande #${orderId.slice(-6)}`,
+    relatedEntityId: orderId,
+  });
+  await createNotification({
+    role: "RESPONSABLE_ACHATS",
+    type: "STOCK_INSUFFICIENT",
+    message: `Stock insuffisant pour la commande #${orderId.slice(-6)}`,
+    relatedEntityId: orderId,
+  });
+
+  for (const productId of insufficientIds) {
+    await prisma.$transaction((tx) => checkAndTriggerReorder(tx, productId));
+  }
+}
+
 export async function createCustomerOrder(clientId: string, lines: OrderLineInput[]) {
   if (!clientId || lines.length === 0) {
     return { success: false as const, error: "Client et au moins une ligne sont requis" };
@@ -38,45 +65,45 @@ export async function createCustomerOrder(clientId: string, lines: OrderLineInpu
 
     if (!sufficient) {
       const insufficientIds = getInsufficientProductIds(availabilityInput);
-      await createNotification({
-        role: "GESTIONNAIRE_STOCK",
-        type: "STOCK_INSUFFICIENT",
-        message: `Stock insuffisant pour la commande #${order.id.slice(-6)}`,
-        relatedEntityId: order.id,
-      });
-      await createNotification({
-        role: "RESPONSABLE_ACHATS",
-        type: "STOCK_INSUFFICIENT",
-        message: `Stock insuffisant pour la commande #${order.id.slice(-6)}`,
-        relatedEntityId: order.id,
-      });
-
-      for (const productId of insufficientIds) {
-        await prisma.$transaction((tx) => checkAndTriggerReorder(tx, productId));
-      }
+      await markOrderInsufficientAndNotify(order.id, insufficientIds);
 
       revalidatePath("/commandes-clients");
       return { success: true as const, data: order };
     }
 
-    await prisma.$transaction(async (tx) => {
-      for (const line of lines) {
-        await tx.product.update({
-          where: { id: line.productId },
-          data: { quantity: { decrement: line.quantity } },
-        });
-        await tx.stockMovement.create({
-          data: {
-            productId: line.productId,
-            quantity: line.quantity,
-            type: "OUT",
-            reason: "CUSTOMER_ORDER",
-            relatedOrderId: order.id,
-          },
-        });
-        await checkAndTriggerReorder(tx, line.productId);
+    try {
+      await prisma.$transaction(async (tx) => {
+        for (const line of lines) {
+          // Re-check quantity inside the transaction to guard against a
+          // concurrent order decrementing stock between the outer
+          // availability check and this write (TOCTOU race).
+          const updated = await tx.product.updateMany({
+            where: { id: line.productId, quantity: { gte: line.quantity } },
+            data: { quantity: { decrement: line.quantity } },
+          });
+          if (updated.count === 0) {
+            throw new StockRaceError(line.productId);
+          }
+          await tx.stockMovement.create({
+            data: {
+              productId: line.productId,
+              quantity: line.quantity,
+              type: "OUT",
+              reason: "CUSTOMER_ORDER",
+              relatedOrderId: order.id,
+            },
+          });
+          await checkAndTriggerReorder(tx, line.productId);
+        }
+      });
+    } catch (err) {
+      if (err instanceof StockRaceError) {
+        await markOrderInsufficientAndNotify(order.id, [err.productId]);
+        revalidatePath("/commandes-clients");
+        return { success: true as const, data: order };
       }
-    });
+      throw err;
+    }
 
     revalidatePath("/commandes-clients");
     revalidatePath("/catalogue/produits");

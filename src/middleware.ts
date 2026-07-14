@@ -6,16 +6,13 @@ export default withAuth(
     const role = req.nextauth.token?.role;
     const path = req.nextUrl.pathname;
 
-    if (path.startsWith("/achats") && role !== "RESPONSABLE_ACHATS") {
-      return NextResponse.redirect(new URL("/dashboard", req.url));
-    }
-    if (path.startsWith("/catalogue") && role !== "GESTIONNAIRE_STOCK") {
-      return NextResponse.redirect(new URL("/dashboard", req.url));
-    }
+    // /catalogue/* and /commandes-fournisseurs are read-only accessible to
+    // all authenticated roles per the design spec's role matrix
+    // (RESPONSABLE_ACHATS reads the catalogue, GESTIONNAIRE_STOCK reads
+    // purchase order history). Mutations on these routes are gated
+    // server-side in the corresponding actions (createProduct/updateProduct,
+    // validatePurchaseOrder/rejectPurchaseOrder/emitPurchaseOrder).
     if (path.startsWith("/reception-livraison") && role !== "GESTIONNAIRE_STOCK") {
-      return NextResponse.redirect(new URL("/dashboard", req.url));
-    }
-    if (path.startsWith("/commandes-fournisseurs") && role !== "RESPONSABLE_ACHATS") {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
     return NextResponse.next();
@@ -32,6 +29,5 @@ export const config = {
     "/preparation-colis/:path*",
     "/reception-livraison/:path*",
     "/notifications/:path*",
-    "/achats/:path*",
   ],
 };

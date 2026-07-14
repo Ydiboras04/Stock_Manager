@@ -1,3 +1,5 @@
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { listProducts } from "@/lib/actions/products";
 import { listSuppliers } from "@/lib/actions/suppliers";
 import { ProductForm } from "./ProductForm";
@@ -5,12 +7,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 
 export default async function ProductsPage() {
-  const [products, suppliers] = await Promise.all([listProducts(), listSuppliers()]);
+  const [session, products, suppliers] = await Promise.all([
+    getServerSession(authOptions),
+    listProducts(),
+    listSuppliers(),
+  ]);
+  const canEdit = session?.user.role === "GESTIONNAIRE_STOCK";
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-6">
       <h1 className="text-2xl font-semibold">Produits</h1>
-      <ProductForm suppliers={suppliers} />
+      {canEdit && <ProductForm suppliers={suppliers} />}
       <Table>
         <TableHeader>
           <TableRow>
