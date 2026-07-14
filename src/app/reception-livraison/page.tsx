@@ -19,7 +19,7 @@ export default function ReceptionLivraisonPage() {
   }
 
   useEffect(() => {
-    refresh();
+    listSentPurchaseOrders().then(setOrders);
   }, []);
 
   return (
