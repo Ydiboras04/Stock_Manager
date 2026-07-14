@@ -28,21 +28,48 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4 rounded-lg border p-6">
-        <h1 className="text-xl font-semibold">Connexion</h1>
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+      <div className="w-full max-w-sm overflow-hidden rounded-md border border-border shadow-sm">
+        <div className="border-b border-primary/30 bg-foreground px-6 py-5">
+          <p className="font-heading text-[11px] font-semibold tracking-[0.3em] text-primary/70 uppercase">
+            Gestion de stock
+          </p>
+          <h1 className="font-heading text-2xl font-semibold tracking-wide text-background uppercase">
+            Stock<span className="text-primary">{"//"}</span>Mgr
+          </h1>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="password">Mot de passe</Label>
-          <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-        </div>
-        <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Connexion..." : "Se connecter"}
-        </Button>
-      </form>
+        <form onSubmit={handleSubmit} className="space-y-4 bg-card px-6 py-6">
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-xs tracking-[0.08em] uppercase text-muted-foreground">
+              Email
+            </Label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="username"
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password" className="text-xs tracking-[0.08em] uppercase text-muted-foreground">
+              Mot de passe
+            </Label>
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+              required
+            />
+          </div>
+          <Button type="submit" className="w-full font-heading tracking-widest uppercase" disabled={loading}>
+            {loading ? "Connexion..." : "Se connecter"}
+          </Button>
+        </form>
+      </div>
     </div>
   );
 }

@@ -26,6 +26,14 @@ const STATUS_LABEL: Record<string, string> = {
   REJECTED: "Rejetée",
 };
 
+const STATUS_VARIANT: Record<string, "warning" | "default" | "secondary" | "success" | "destructive"> = {
+  PENDING_VALIDATION: "warning",
+  VALIDATED: "default",
+  SENT: "secondary",
+  DELIVERED: "success",
+  REJECTED: "destructive",
+};
+
 export function PurchaseOrdersList({ orders }: { orders: Order[] }) {
   const [localOrders, setLocalOrders] = useState(orders);
 
@@ -66,7 +74,7 @@ export function PurchaseOrdersList({ orders }: { orders: Order[] }) {
             <p className="text-sm text-muted-foreground">
               {order.lines.map((l) => `${l.product.name} x${l.quantity}`).join(", ")}
             </p>
-            <Badge variant="secondary" className="mt-1">
+            <Badge variant={STATUS_VARIANT[order.status] ?? "secondary"} className="mt-1">
               {STATUS_LABEL[order.status]}
             </Badge>
           </div>

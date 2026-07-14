@@ -16,7 +16,7 @@ export default async function ProductsPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-6">
-      <h1 className="text-2xl font-semibold">Produits</h1>
+      <h1 className="font-heading text-3xl font-semibold tracking-wide uppercase">Produits</h1>
       {canEdit && <ProductForm suppliers={suppliers} />}
       <Table>
         <TableHeader>
@@ -39,9 +39,9 @@ export default async function ProductsPage() {
               <TableCell>{p.supplier.name}</TableCell>
               <TableCell>
                 {p.quantity < p.qMin ? (
-                  <Badge variant="destructive">Sous le seuil</Badge>
+                  <Badge variant="warning">Sous le seuil</Badge>
                 ) : (
-                  <Badge variant="secondary">OK</Badge>
+                  <Badge variant="success">OK</Badge>
                 )}
               </TableCell>
             </TableRow>

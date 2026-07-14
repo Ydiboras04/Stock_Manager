@@ -11,14 +11,23 @@ const STATUS_LABEL: Record<string, string> = {
   SHIPPED: "Expédiée",
 };
 
+const STATUS_VARIANT: Record<string, "warning" | "destructive" | "default" | "success"> = {
+  PENDING: "warning",
+  STOCK_INSUFFICIENT: "destructive",
+  RESERVED: "default",
+  SHIPPED: "success",
+};
+
 export default async function CustomerOrdersPage() {
   const orders = await listCustomerOrders();
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 p-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Commandes clients</h1>
-        <Button render={<Link href="/commandes-clients/nouvelle" />}>Nouvelle commande</Button>
+        <h1 className="font-heading text-3xl font-semibold tracking-wide uppercase">Commandes clients</h1>
+        <Button render={<Link href="/commandes-clients/nouvelle" />} nativeButton={false}>
+          Nouvelle commande
+        </Button>
       </div>
       <Table>
         <TableHeader>
@@ -36,7 +45,7 @@ export default async function CustomerOrdersPage() {
                 {o.lines.map((l) => `${l.product.name} x${l.quantity}`).join(", ")}
               </TableCell>
               <TableCell>
-                <Badge variant={o.status === "STOCK_INSUFFICIENT" ? "destructive" : "secondary"}>
+                <Badge variant={STATUS_VARIANT[o.status] ?? "secondary"}>
                   {STATUS_LABEL[o.status]}
                 </Badge>
               </TableCell>
