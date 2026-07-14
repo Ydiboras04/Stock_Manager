@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SessionProviderWrapper } from "@/components/SessionProviderWrapper";
 import { Toaster } from "@/components/ui/sonner";
+import { ConditionalShell } from "@/components/layout/ConditionalShell";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,7 +32,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <SessionProviderWrapper>
-          {children}
+          <ConditionalShell>{children}</ConditionalShell>
           <Toaster />
         </SessionProviderWrapper>
       </body>
