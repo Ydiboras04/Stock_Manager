@@ -7,7 +7,7 @@ export default async function NewCustomerOrderPage() {
 
   return (
     <div className="mx-auto max-w-2xl p-6">
-      <h1 className="mb-4 text-2xl font-semibold">Nouvelle commande client</h1>
+      <h1 className="mb-4 font-heading text-3xl font-semibold tracking-wide uppercase">Nouvelle commande client</h1>
       <NewOrderForm clients={clients} products={products} />
     </div>
   );

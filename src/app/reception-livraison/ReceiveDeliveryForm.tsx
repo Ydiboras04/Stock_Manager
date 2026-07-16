@@ -39,17 +39,19 @@ export function ReceiveDeliveryForm({ order, onDone }: { order: Order; onDone: (
   }
 
   return (
-    <div className="space-y-3 rounded border p-4">
+    <div className="space-y-3 rounded-md border border-border bg-card p-4 shadow-sm">
       <p className="font-medium">{order.supplier.name}</p>
       {order.lines.map((line) => (
         <div key={line.id} className="flex items-center gap-3">
-          <span className="w-48">{line.product.name} (commandé: {line.quantity})</span>
+          <span className="w-48 font-mono text-sm">
+            {line.product.name} <span className="text-muted-foreground">(commandé: {line.quantity})</span>
+          </span>
           <Input
             type="number"
             min={0}
             value={quantities[line.id]}
             onChange={(e) => setQuantities((prev) => ({ ...prev, [line.id]: Number(e.target.value) }))}
-            className="w-24"
+            className="w-24 font-mono"
           />
         </div>
       ))}

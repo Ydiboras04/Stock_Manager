@@ -30,13 +30,20 @@ export default function PreparationColisPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-4 p-6">
-      <h1 className="text-2xl font-semibold">Préparation du colis</h1>
-      {orders.length === 0 && <p className="text-muted-foreground">Aucune commande à préparer.</p>}
+      <h1 className="font-heading text-3xl font-semibold tracking-wide uppercase">Préparation du colis</h1>
+      {orders.length === 0 && (
+        <p className="rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground">
+          Aucune commande à préparer.
+        </p>
+      )}
       {orders.map((o) => (
-        <div key={o.id} className="flex items-center justify-between rounded border p-4">
+        <div
+          key={o.id}
+          className="flex items-center justify-between rounded-md border border-border bg-card p-4 shadow-sm"
+        >
           <div>
             <p className="font-medium">{o.client.name}</p>
-            <p className="text-sm text-muted-foreground">
+            <p className="font-mono text-sm text-muted-foreground">
               {o.lines.map((l) => `${l.product.name} x${l.quantity}`).join(", ")}
             </p>
           </div>

@@ -21,19 +21,27 @@ export function SupplierForm() {
     toast.success("Fournisseur créé");
   }
 
+  const labelClass = "text-xs tracking-[0.08em] uppercase text-muted-foreground";
+
   return (
-    <form action={handleSubmit} className="grid grid-cols-3 gap-3">
-      <div>
-        <Label htmlFor="name">Nom</Label>
+    <form
+      action={handleSubmit}
+      className="grid grid-cols-3 gap-3 rounded-md border border-border bg-card p-4 shadow-sm"
+    >
+      <p className="col-span-3 -mb-1 font-heading text-xs font-semibold tracking-[0.14em] text-primary uppercase">
+        Ajouter un fournisseur
+      </p>
+      <div className="space-y-1.5">
+        <Label htmlFor="name" className={labelClass}>Nom</Label>
         <Input id="name" name="name" required />
       </div>
-      <div>
-        <Label htmlFor="email">Email</Label>
+      <div className="space-y-1.5">
+        <Label htmlFor="email" className={labelClass}>Email</Label>
         <Input id="email" name="email" type="email" required />
       </div>
-      <div>
-        <Label htmlFor="phone">Téléphone</Label>
-        <Input id="phone" name="phone" />
+      <div className="space-y-1.5">
+        <Label htmlFor="phone" className={labelClass}>Téléphone</Label>
+        <Input id="phone" name="phone" className="font-mono" />
       </div>
       <Button type="submit" disabled={pending} className="col-span-3 w-fit">
         Ajouter le fournisseur

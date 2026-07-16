@@ -33,26 +33,34 @@ export function ProductForm({ suppliers }: { suppliers: SupplierOption[] }) {
     toast.success("Produit créé");
   }
 
+  const labelClass = "text-xs tracking-[0.08em] uppercase text-muted-foreground";
+
   return (
-    <form action={handleSubmit} className="grid grid-cols-5 gap-3">
-      <div>
-        <Label htmlFor="sku">SKU</Label>
-        <Input id="sku" name="sku" required />
+    <form
+      action={handleSubmit}
+      className="grid grid-cols-5 gap-3 rounded-md border border-border bg-card p-4 shadow-sm"
+    >
+      <p className="col-span-5 -mb-1 font-heading text-xs font-semibold tracking-[0.14em] text-primary uppercase">
+        Ajouter un produit
+      </p>
+      <div className="space-y-1.5">
+        <Label htmlFor="sku" className={labelClass}>SKU</Label>
+        <Input id="sku" name="sku" required className="font-mono" />
       </div>
-      <div>
-        <Label htmlFor="name">Nom</Label>
+      <div className="space-y-1.5">
+        <Label htmlFor="name" className={labelClass}>Nom</Label>
         <Input id="name" name="name" required />
       </div>
-      <div>
-        <Label htmlFor="quantity">Quantité initiale</Label>
-        <Input id="quantity" name="quantity" type="number" min={0} defaultValue={0} required />
+      <div className="space-y-1.5">
+        <Label htmlFor="quantity" className={labelClass}>Quantité initiale</Label>
+        <Input id="quantity" name="quantity" type="number" min={0} defaultValue={0} required className="font-mono" />
       </div>
-      <div>
-        <Label htmlFor="qMin">Seuil Qmin</Label>
-        <Input id="qMin" name="qMin" type="number" min={0} required />
+      <div className="space-y-1.5">
+        <Label htmlFor="qMin" className={labelClass}>Seuil Qmin</Label>
+        <Input id="qMin" name="qMin" type="number" min={0} required className="font-mono" />
       </div>
-      <div>
-        <Label>Fournisseur</Label>
+      <div className="space-y-1.5">
+        <Label className={labelClass}>Fournisseur</Label>
         <Select value={supplierId} onValueChange={(value) => setSupplierId(value ?? "")}>
           <SelectTrigger>
             <SelectValue placeholder="Choisir" />

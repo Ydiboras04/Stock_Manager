@@ -24,8 +24,12 @@ export default function ReceptionLivraisonPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-4 p-6">
-      <h1 className="text-2xl font-semibold">Réception de livraison</h1>
-      {orders.length === 0 && <p className="text-muted-foreground">Aucune livraison en attente.</p>}
+      <h1 className="font-heading text-3xl font-semibold tracking-wide uppercase">Réception de livraison</h1>
+      {orders.length === 0 && (
+        <p className="rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground">
+          Aucune livraison en attente.
+        </p>
+      )}
       {orders.map((order) => (
         <ReceiveDeliveryForm key={order.id} order={order} onDone={refresh} />
       ))}

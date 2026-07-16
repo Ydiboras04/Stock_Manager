@@ -67,14 +67,22 @@ export function PurchaseOrdersList({ orders }: { orders: Order[] }) {
 
   return (
     <div className="space-y-3">
+      {localOrders.length === 0 && (
+        <p className="rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground">
+          Aucune commande fournisseur.
+        </p>
+      )}
       {localOrders.map((order) => (
-        <div key={order.id} className="flex items-center justify-between rounded border p-4">
-          <div>
+        <div
+          key={order.id}
+          className="flex items-center justify-between rounded-md border border-border bg-card p-4 shadow-sm"
+        >
+          <div className="space-y-1.5">
             <p className="font-medium">{order.supplier.name}</p>
-            <p className="text-sm text-muted-foreground">
+            <p className="font-mono text-sm text-muted-foreground">
               {order.lines.map((l) => `${l.product.name} x${l.quantity}`).join(", ")}
             </p>
-            <Badge variant={STATUS_VARIANT[order.status] ?? "secondary"} className="mt-1">
+            <Badge variant={STATUS_VARIANT[order.status] ?? "secondary"}>
               {STATUS_LABEL[order.status]}
             </Badge>
           </div>

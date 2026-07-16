@@ -32,7 +32,7 @@ export default async function ProductsPage() {
         <TableBody>
           {products.map((p) => (
             <TableRow key={p.id}>
-              <TableCell>{p.sku}</TableCell>
+              <TableCell className="font-mono">{p.sku}</TableCell>
               <TableCell>{p.name}</TableCell>
               <TableCell>{p.quantity}</TableCell>
               <TableCell>{p.qMin}</TableCell>
