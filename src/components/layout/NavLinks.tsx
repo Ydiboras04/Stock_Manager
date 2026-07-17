@@ -12,6 +12,7 @@ const LINKS = [
   { href: "/preparation-colis", label: "Préparation colis", roles: ["GESTIONNAIRE_STOCK"] },
   { href: "/reception-livraison", label: "Réception livraison", roles: ["GESTIONNAIRE_STOCK"] },
   { href: "/commandes-fournisseurs", label: "Commandes fournisseurs", roles: ["RESPONSABLE_ACHATS"] },
+  { href: "/factures", label: "Factures", roles: ["GESTIONNAIRE_STOCK", "RESPONSABLE_ACHATS"] },
 ];
 
 export function NavLinks() {
