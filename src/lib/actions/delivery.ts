@@ -25,6 +25,9 @@ export async function receiveDelivery(purchaseOrderId: string, receivedQuantitie
       include: { supplier: true, lines: { include: { product: true } } },
     });
     if (!order) return { success: false as const, error: "Commande introuvable" };
+    if (order.status !== "SENT") {
+      return { success: false as const, error: "Cette commande n'est plus au statut envoyée" };
+    }
 
     const receivedLines: ReceivedLine[] = order.lines.map((line) => ({
       productId: line.productId,

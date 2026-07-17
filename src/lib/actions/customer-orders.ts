@@ -148,6 +148,9 @@ export async function markCustomerOrderShipped(id: string) {
       include: { client: true, lines: { include: { product: true } } },
     });
     if (!order) return { success: false as const, error: "Commande introuvable" };
+    if (order.status !== "RESERVED") {
+      return { success: false as const, error: "Cette commande n'est plus au statut réservé" };
+    }
 
     await prisma.$transaction(async (tx) => {
       await tx.customerOrder.update({ where: { id }, data: { status: "SHIPPED" } });
