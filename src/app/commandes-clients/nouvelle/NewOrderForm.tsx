@@ -49,7 +49,11 @@ export function NewOrderForm({ clients, products }: { clients: Option[]; product
     <div className="space-y-4">
       <div>
         <Label>Client</Label>
-        <Select value={clientId} onValueChange={(value) => setClientId(value ?? "")}>
+        <Select
+          items={clients.map((c) => ({ value: c.id, label: c.name }))}
+          value={clientId}
+          onValueChange={(value) => setClientId(value ?? "")}
+        >
           <SelectTrigger>
             <SelectValue placeholder="Choisir un client" />
           </SelectTrigger>
@@ -66,6 +70,7 @@ export function NewOrderForm({ clients, products }: { clients: Option[]; product
       {lines.map((line, index) => (
         <div key={index} className="flex gap-3">
           <Select
+            items={products.map((p) => ({ value: p.id, label: p.name }))}
             value={line.productId}
             onValueChange={(value) => updateLine(index, { productId: value ?? "" })}
           >

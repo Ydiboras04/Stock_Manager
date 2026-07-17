@@ -61,7 +61,11 @@ export function ProductForm({ suppliers }: { suppliers: SupplierOption[] }) {
       </div>
       <div className="space-y-1.5">
         <Label className={labelClass}>Fournisseur</Label>
-        <Select value={supplierId} onValueChange={(value) => setSupplierId(value ?? "")}>
+        <Select
+          items={suppliers.map((s) => ({ value: s.id, label: s.name }))}
+          value={supplierId}
+          onValueChange={(value) => setSupplierId(value ?? "")}
+        >
           <SelectTrigger>
             <SelectValue placeholder="Choisir" />
           </SelectTrigger>
