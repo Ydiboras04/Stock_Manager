@@ -38,9 +38,9 @@ async function main() {
 
   await prisma.product.createMany({
     data: [
-      { sku: "SKU-001", name: "Clavier mécanique", quantity: 25, qMin: 10, supplierId: supplier.id },
-      { sku: "SKU-002", name: "Souris optique", quantity: 8, qMin: 15, supplierId: supplier.id },
-      { sku: "SKU-003", name: "Écran 24 pouces", quantity: 12, qMin: 5, supplierId: supplier.id },
+      { sku: "SKU-001", name: "Clavier mécanique", quantity: 25, qMin: 10, unitPriceCents: 4500, supplierId: supplier.id },
+      { sku: "SKU-002", name: "Souris optique", quantity: 8, qMin: 15, unitPriceCents: 1990, supplierId: supplier.id },
+      { sku: "SKU-003", name: "Écran 24 pouces", quantity: 12, qMin: 5, unitPriceCents: 15900, supplierId: supplier.id },
     ],
   });
 

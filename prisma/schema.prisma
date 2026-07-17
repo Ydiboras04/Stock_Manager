@@ -46,6 +46,11 @@ enum NotificationType {
   PURCHASE_ORDER_SENT
 }
 
+enum InvoiceType {
+  SALE
+  PURCHASE
+}
+
 model User {
   id           String   @id @default(cuid())
   name         String
@@ -68,13 +73,14 @@ model Supplier {
 }
 
 model Product {
-  id         String   @id @default(cuid())
-  sku        String   @unique
-  name       String
-  quantity   Int      @default(0)
-  qMin       Int
-  supplierId String
-  supplier   Supplier @relation(fields: [supplierId], references: [id])
+  id             String   @id @default(cuid())
+  sku            String   @unique
+  name           String
+  quantity       Int      @default(0)
+  qMin           Int
+  unitPriceCents Int      @default(0)
+  supplierId     String
+  supplier       Supplier @relation(fields: [supplierId], references: [id])
 
   purchaseOrderLines PurchaseOrderLine[]
   customerOrderLines CustomerOrderLine[]
@@ -150,4 +156,30 @@ model StockMovement {
   reason         StockMovementReason
   createdAt      DateTime            @default(now())
   relatedOrderId String?
+}
+
+model Invoice {
+  id              String      @id @default(cuid())
+  number          String      @unique
+  type            InvoiceType
+  customerOrderId String?
+  purchaseOrderId String?
+  partyName       String
+  issuedAt        DateTime    @default(now())
+  subtotalCents   Int
+  tvaCents        Int
+  totalCents      Int
+
+  lines InvoiceLine[]
+}
+
+model InvoiceLine {
+  id             String  @id @default(cuid())
+  invoiceId      String
+  invoice        Invoice @relation(fields: [invoiceId], references: [id])
+  productName    String
+  productSku     String
+  quantity       Int
+  unitPriceCents Int
+  lineTotalCents Int
 }

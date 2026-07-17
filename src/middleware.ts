@@ -29,5 +29,6 @@ export const config = {
     "/preparation-colis/:path*",
     "/reception-livraison/:path*",
     "/notifications/:path*",
+    "/factures/:path*",
   ],
 };
