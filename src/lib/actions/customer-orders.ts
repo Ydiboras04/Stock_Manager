@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { isStockSufficient, getInsufficientProductIds, type OrderLineRequest } from "@/lib/business/availability";
 import { checkAndTriggerReorder } from "@/lib/actions/purchase-orders";
 import { createNotification } from "@/lib/notifications";
+import { createInvoiceForCustomerOrder } from "@/lib/actions/invoices";
 
 export interface OrderLineInput {
   productId: string;
@@ -142,9 +143,20 @@ export async function listReservedCustomerOrders() {
 
 export async function markCustomerOrderShipped(id: string) {
   try {
-    await prisma.customerOrder.update({ where: { id }, data: { status: "SHIPPED" } });
+    const order = await prisma.customerOrder.findUnique({
+      where: { id },
+      include: { client: true, lines: { include: { product: true } } },
+    });
+    if (!order) return { success: false as const, error: "Commande introuvable" };
+
+    await prisma.$transaction(async (tx) => {
+      await tx.customerOrder.update({ where: { id }, data: { status: "SHIPPED" } });
+      await createInvoiceForCustomerOrder(tx, order);
+    });
+
     revalidatePath("/preparation-colis");
     revalidatePath("/commandes-clients");
+    revalidatePath("/factures");
     return { success: true as const };
   } catch (error) {
     return {
