@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { isDeliveryConform, type ReceivedLine } from "@/lib/business/conformity";
 import { createNotification } from "@/lib/notifications";
+import { createInvoiceForPurchaseOrder } from "@/lib/actions/invoices";
 
 export async function listSentPurchaseOrders() {
   try {
@@ -21,7 +22,7 @@ export async function receiveDelivery(purchaseOrderId: string, receivedQuantitie
   try {
     const order = await prisma.purchaseOrder.findUnique({
       where: { id: purchaseOrderId },
-      include: { lines: { include: { product: true } } },
+      include: { supplier: true, lines: { include: { product: true } } },
     });
     if (!order) return { success: false as const, error: "Commande introuvable" };
 
@@ -71,6 +72,7 @@ export async function receiveDelivery(purchaseOrderId: string, receivedQuantitie
         });
       }
       await tx.purchaseOrder.update({ where: { id: purchaseOrderId }, data: { status: "DELIVERED" } });
+      await createInvoiceForPurchaseOrder(tx, order);
     });
 
     await createNotification({
@@ -82,6 +84,7 @@ export async function receiveDelivery(purchaseOrderId: string, receivedQuantitie
 
     revalidatePath("/reception-livraison");
     revalidatePath("/catalogue/produits");
+    revalidatePath("/factures");
     return { success: true as const, conform: true };
   } catch (error) {
     return {
