@@ -44,7 +44,7 @@ export function NotificationBell() {
           </span>
         )}
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80">
+      <DropdownMenuContent align="end" className="w-80 bg-popover/85 backdrop-blur-md">
         {notifications.length === 0 && (
           <DropdownMenuItem disabled>Aucune notification</DropdownMenuItem>
         )}

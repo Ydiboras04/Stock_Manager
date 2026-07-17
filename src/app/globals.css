@@ -80,6 +80,8 @@
   --chart-3: #3F6B49;
   --chart-4: #A6382B;
   --chart-5: #5B5F57;
+  --chart-viz-1: #0A6FA8;
+  --chart-viz-2: #C97A2B;
   --radius: 0.375rem;
   --sidebar: #FFFFFF;
   --sidebar-foreground: #171B18;
@@ -119,6 +121,8 @@
   --chart-3: #7BAE84;
   --chart-4: #D97362;
   --chart-5: #96A099;
+  --chart-viz-1: #3F97CE;
+  --chart-viz-2: #C77E33;
   --sidebar: #1B2124;
   --sidebar-foreground: #EDEFEA;
   --sidebar-primary: #6FA8AC;
@@ -139,4 +143,12 @@
   html {
     @apply font-sans;
   }
+  .font-heading {
+    line-height: 1.15;
+    letter-spacing: 0.01em;
+  }
+}
+
+.recharts-legend-item-text {
+  color: var(--muted-foreground) !important;
 }
