@@ -6,6 +6,12 @@ import { isDeliveryConform, type ReceivedLine } from "@/lib/business/conformity"
 import { createNotification } from "@/lib/notifications";
 import { createInvoiceForPurchaseOrder } from "@/lib/actions/invoices";
 
+class PurchaseOrderNoLongerSentError extends Error {
+  constructor(readonly purchaseOrderId: string) {
+    super("Cette commande n'est plus au statut envoyée");
+  }
+}
+
 export async function listSentPurchaseOrders() {
   try {
     return await prisma.purchaseOrder.findMany({
@@ -58,25 +64,43 @@ export async function receiveDelivery(purchaseOrderId: string, receivedQuantitie
       return { success: true as const, conform: false };
     }
 
-    await prisma.$transaction(async (tx) => {
-      for (const line of order.lines) {
-        await tx.product.update({
-          where: { id: line.productId },
-          data: { quantity: { increment: line.quantity } },
+    try {
+      await prisma.$transaction(async (tx) => {
+        // Re-check status inside the transaction to guard against a
+        // concurrent call transitioning the order between the outer
+        // pre-check and this write (TOCTOU race). Checked first so a
+        // failed guard avoids the stock increments below.
+        const updated = await tx.purchaseOrder.updateMany({
+          where: { id: purchaseOrderId, status: "SENT" },
+          data: { status: "DELIVERED" },
         });
-        await tx.stockMovement.create({
-          data: {
-            productId: line.productId,
-            quantity: line.quantity,
-            type: "IN",
-            reason: "DELIVERY",
-            relatedOrderId: purchaseOrderId,
-          },
-        });
+        if (updated.count === 0) {
+          throw new PurchaseOrderNoLongerSentError(purchaseOrderId);
+        }
+
+        for (const line of order.lines) {
+          await tx.product.update({
+            where: { id: line.productId },
+            data: { quantity: { increment: line.quantity } },
+          });
+          await tx.stockMovement.create({
+            data: {
+              productId: line.productId,
+              quantity: line.quantity,
+              type: "IN",
+              reason: "DELIVERY",
+              relatedOrderId: purchaseOrderId,
+            },
+          });
+        }
+        await createInvoiceForPurchaseOrder(tx, order);
+      });
+    } catch (err) {
+      if (err instanceof PurchaseOrderNoLongerSentError) {
+        return { success: false as const, error: "Cette commande n'est plus au statut envoyée" };
       }
-      await tx.purchaseOrder.update({ where: { id: purchaseOrderId }, data: { status: "DELIVERED" } });
-      await createInvoiceForPurchaseOrder(tx, order);
-    });
+      throw err;
+    }
 
     await createNotification({
       role: "RESPONSABLE_ACHATS",

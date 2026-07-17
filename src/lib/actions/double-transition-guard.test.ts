@@ -110,4 +110,65 @@ describe("double-invocation guards against re-transitioning an already-processed
     const finalPo = await prisma.purchaseOrder.findUniqueOrThrow({ where: { id: po.id } });
     expect(finalPo.status).toBe("DELIVERED");
   });
+
+  it("markCustomerOrderShipped fired concurrently only creates one invoice (true race, not sequential)", async () => {
+    const product = await prisma.product.create({
+      data: { sku: `SHIP-RACE-${Date.now()}`, name: "Produit test race shipped", quantity: 10, qMin: 0, unitPriceCents: 1000, supplierId },
+    });
+
+    const order = await prisma.customerOrder.create({
+      data: {
+        clientId,
+        status: "RESERVED",
+        lines: { create: [{ productId: product.id, quantity: 2 }] },
+      },
+    });
+
+    const [resultA, resultB] = await Promise.all([
+      markCustomerOrderShipped(order.id),
+      markCustomerOrderShipped(order.id),
+    ]);
+
+    const successes = [resultA, resultB].filter((r) => r.success);
+    expect(successes).toHaveLength(1);
+
+    const invoiceCount = await prisma.invoice.count({ where: { customerOrderId: order.id } });
+    expect(invoiceCount).toBe(1);
+
+    const finalOrder = await prisma.customerOrder.findUniqueOrThrow({ where: { id: order.id } });
+    expect(finalOrder.status).toBe("SHIPPED");
+  });
+
+  it("receiveDelivery fired concurrently only creates one invoice and increments stock once (true race, not sequential)", async () => {
+    const product = await prisma.product.create({
+      data: { sku: `RECV-RACE-${Date.now()}`, name: "Produit test race delivery", quantity: 5, qMin: 0, unitPriceCents: 1000, supplierId },
+    });
+
+    const po = await prisma.purchaseOrder.create({
+      data: {
+        supplierId,
+        status: "SENT",
+        lines: { create: [{ productId: product.id, quantity: 4 }] },
+      },
+      include: { lines: true },
+    });
+    const lineId = po.lines[0].id;
+
+    const [resultA, resultB] = await Promise.all([
+      receiveDelivery(po.id, { [lineId]: 4 }),
+      receiveDelivery(po.id, { [lineId]: 4 }),
+    ]);
+
+    const successes = [resultA, resultB].filter((r) => r.success);
+    expect(successes).toHaveLength(1);
+
+    const invoiceCount = await prisma.invoice.count({ where: { purchaseOrderId: po.id } });
+    expect(invoiceCount).toBe(1);
+
+    const finalProduct = await prisma.product.findUniqueOrThrow({ where: { id: product.id } });
+    expect(finalProduct.quantity).toBe(9); // 5 + 4, incremented only once
+
+    const finalPo = await prisma.purchaseOrder.findUniqueOrThrow({ where: { id: po.id } });
+    expect(finalPo.status).toBe("DELIVERED");
+  });
 });

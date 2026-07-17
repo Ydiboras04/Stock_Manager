@@ -18,6 +18,12 @@ class StockRaceError extends Error {
   }
 }
 
+class OrderNoLongerReservedError extends Error {
+  constructor(readonly orderId: string) {
+    super("Cette commande n'est plus au statut réservé");
+  }
+}
+
 async function markOrderInsufficientAndNotify(orderId: string, insufficientIds: string[]) {
   await prisma.customerOrder.update({ where: { id: orderId }, data: { status: "STOCK_INSUFFICIENT" } });
 
@@ -152,10 +158,26 @@ export async function markCustomerOrderShipped(id: string) {
       return { success: false as const, error: "Cette commande n'est plus au statut réservé" };
     }
 
-    await prisma.$transaction(async (tx) => {
-      await tx.customerOrder.update({ where: { id }, data: { status: "SHIPPED" } });
-      await createInvoiceForCustomerOrder(tx, order);
-    });
+    try {
+      await prisma.$transaction(async (tx) => {
+        // Re-check status inside the transaction to guard against a
+        // concurrent call transitioning the order between the outer
+        // pre-check and this write (TOCTOU race).
+        const updated = await tx.customerOrder.updateMany({
+          where: { id, status: "RESERVED" },
+          data: { status: "SHIPPED" },
+        });
+        if (updated.count === 0) {
+          throw new OrderNoLongerReservedError(id);
+        }
+        await createInvoiceForCustomerOrder(tx, order);
+      });
+    } catch (err) {
+      if (err instanceof OrderNoLongerReservedError) {
+        return { success: false as const, error: "Cette commande n'est plus au statut réservé" };
+      }
+      throw err;
+    }
 
     revalidatePath("/preparation-colis");
     revalidatePath("/commandes-clients");
