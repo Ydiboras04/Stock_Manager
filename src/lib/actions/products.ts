@@ -23,11 +23,21 @@ export async function createProduct(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const quantity = Number(formData.get("quantity") ?? 0);
   const qMin = Number(formData.get("qMin") ?? 0);
+  const unitPriceEuros = Number(formData.get("unitPrice") ?? 0);
   const supplierId = String(formData.get("supplierId") ?? "");
 
-  if (!sku || !name || !supplierId || Number.isNaN(quantity) || Number.isNaN(qMin)) {
+  if (
+    !sku ||
+    !name ||
+    !supplierId ||
+    Number.isNaN(quantity) ||
+    Number.isNaN(qMin) ||
+    Number.isNaN(unitPriceEuros)
+  ) {
     return { success: false as const, error: "Tous les champs sont requis" };
   }
+
+  const unitPriceCents = Math.round(unitPriceEuros * 100);
 
   try {
     const existing = await prisma.product.findUnique({ where: { sku } });
@@ -35,7 +45,7 @@ export async function createProduct(formData: FormData) {
       return { success: false as const, error: "Ce SKU existe déjà" };
     }
 
-    await prisma.product.create({ data: { sku, name, quantity, qMin, supplierId } });
+    await prisma.product.create({ data: { sku, name, quantity, qMin, unitPriceCents, supplierId } });
     revalidatePath("/catalogue/produits");
     return { success: true as const };
   } catch (err) {
@@ -54,13 +64,16 @@ export async function updateProduct(id: string, formData: FormData) {
 
   const name = String(formData.get("name") ?? "").trim();
   const qMin = Number(formData.get("qMin") ?? 0);
+  const unitPriceEuros = Number(formData.get("unitPrice") ?? 0);
 
-  if (!name || Number.isNaN(qMin)) {
+  if (!name || Number.isNaN(qMin) || Number.isNaN(unitPriceEuros)) {
     return { success: false as const, error: "Champs invalides" };
   }
 
+  const unitPriceCents = Math.round(unitPriceEuros * 100);
+
   try {
-    await prisma.product.update({ where: { id }, data: { name, qMin } });
+    await prisma.product.update({ where: { id }, data: { name, qMin, unitPriceCents } });
     revalidatePath("/catalogue/produits");
     return { success: true as const };
   } catch (err) {

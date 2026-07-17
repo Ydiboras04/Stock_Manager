@@ -25,6 +25,7 @@ export default async function ProductsPage() {
             <TableHead>Nom</TableHead>
             <TableHead>Quantité</TableHead>
             <TableHead>Seuil Qmin</TableHead>
+            <TableHead>Prix unitaire</TableHead>
             <TableHead>Fournisseur</TableHead>
             <TableHead>Statut</TableHead>
           </TableRow>
@@ -36,6 +37,9 @@ export default async function ProductsPage() {
               <TableCell>{p.name}</TableCell>
               <TableCell>{p.quantity}</TableCell>
               <TableCell>{p.qMin}</TableCell>
+              <TableCell className="font-mono">
+                {(p.unitPriceCents / 100).toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}
+              </TableCell>
               <TableCell>{p.supplier.name}</TableCell>
               <TableCell>
                 {p.quantity < p.qMin ? (

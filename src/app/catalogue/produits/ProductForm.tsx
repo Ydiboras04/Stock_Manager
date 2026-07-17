@@ -38,9 +38,9 @@ export function ProductForm({ suppliers }: { suppliers: SupplierOption[] }) {
   return (
     <form
       action={handleSubmit}
-      className="grid grid-cols-5 gap-3 rounded-md border border-border bg-card p-4 shadow-sm"
+      className="grid grid-cols-6 gap-3 rounded-md border border-border bg-card p-4 shadow-sm"
     >
-      <p className="col-span-5 -mb-1 font-heading text-xs font-semibold tracking-[0.14em] text-primary uppercase">
+      <p className="col-span-6 -mb-1 font-heading text-xs font-semibold tracking-[0.14em] text-primary uppercase">
         Ajouter un produit
       </p>
       <div className="space-y-1.5">
@@ -58,6 +58,10 @@ export function ProductForm({ suppliers }: { suppliers: SupplierOption[] }) {
       <div className="space-y-1.5">
         <Label htmlFor="qMin" className={labelClass}>Seuil Qmin</Label>
         <Input id="qMin" name="qMin" type="number" min={0} required className="font-mono" />
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="unitPrice" className={labelClass}>Prix unitaire (€)</Label>
+        <Input id="unitPrice" name="unitPrice" type="number" min={0} step="0.01" defaultValue={0} required className="font-mono" />
       </div>
       <div className="space-y-1.5">
         <Label className={labelClass}>Fournisseur</Label>
@@ -78,7 +82,7 @@ export function ProductForm({ suppliers }: { suppliers: SupplierOption[] }) {
           </SelectContent>
         </Select>
       </div>
-      <Button type="submit" disabled={pending} className="col-span-5 w-fit">
+      <Button type="submit" disabled={pending} className="col-span-6 w-fit">
         Ajouter le produit
       </Button>
     </form>
